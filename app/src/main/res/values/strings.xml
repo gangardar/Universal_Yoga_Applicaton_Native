@@ -1,0 +1,27 @@
+<resources>
+    <string name="app_name">UniversalYoga</string>
+
+    <string name="open">Open</string>
+    <string name="close">Close</string>
+
+    <string-array name="types">
+        <item>Flow Yoga</item>
+        <item>Aerial Yoga</item>
+        <item>Family Yoga</item>
+        <item>Yoga for Kids</item>
+    </string-array>
+
+    <string-array name="days">
+        <item>Monday</item>
+        <item>Tuesday</item>
+        <item>Wednesday</item>
+        <item>Thursday</item>
+        <item>Friday</item>
+        <item>Saturday</item>
+        <item>Sunday</item>
+    </string-array>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="ok">okay</string>
+    <string name="cancel">Cancel</string>
+</resources>

@@ -1,0 +1,9 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.UniversalYoga" parent="Theme.Material3.DayNight">
+        <!-- Customize your light theme here. -->
+         <item name="android:textColor">@color/primary_text</item>
+    </style>
+
+    <style name="Theme.UniversalYoga" parent="Base.Theme.UniversalYoga" />
+</resources>
