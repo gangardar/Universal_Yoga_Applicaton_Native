@@ -1,5 +1,6 @@
 package com.example.universalyoga
 
+import android.app.AlertDialog
 import android.content.Intent
 import android.inputmethodservice.Keyboard.Row
 import android.net.Uri
@@ -16,11 +17,12 @@ import androidx.fragment.app.Fragment
 
 
 class CourseDetailFragment(private val course: Course) : Fragment() {
+    lateinit var courseDBHelper: CourseDBHelper
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.course_detailed_view, container, false)
-
+        courseDBHelper = CourseDBHelper(requireContext())
         // Bind views
         val ivCourseImage = view.findViewById<ImageView>(R.id.ivCourseImage)
         val tvCourseTitle = view.findViewById<TextView>(R.id.tvCourseTitle)
@@ -61,4 +63,43 @@ class CourseDetailFragment(private val course: Course) : Fragment() {
         }
         return view
     }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        val btnEdit = view.findViewById<Button>(R.id.btnEdit)
+        val btnDelete = view.findViewById<Button>(R.id.btnDelete)
+
+        btnDelete.setOnClickListener {
+            showDeleteConfirmationDialog()
+        }
+        btnEdit.setOnClickListener {
+            activity?.supportFragmentManager?.beginTransaction()
+                ?.replace(
+                    R.id.fragment_container,  // Container where the fragment will be replaced
+                    CourseEditFragment(course) { courseDBHelper.updateCourse(course) }  // Pass the course object and updateCourse function
+                )
+                ?.addToBackStack(null)  // Optional: Add this transaction to the back stack
+                ?.commit()
+        }
+
+    }
+
+    private fun showDeleteConfirmationDialog() {
+        AlertDialog.Builder(requireContext())
+            .setTitle("Delete Course")
+            .setMessage("Are you sure you want to delete this course?")
+            .setPositiveButton("Delete") { _, _ ->
+                val deletedRows = courseDBHelper.deleteCourse(course.id,course.imageUrl)
+                if (deletedRows > 0) {
+                    Toast.makeText(requireContext(), "Course deleted successfully", Toast.LENGTH_SHORT).show()
+                    // Go back or update the UI
+                    requireActivity().supportFragmentManager.popBackStack() // Go back to previous fragment
+                } else {
+                    Toast.makeText(requireContext(), "Failed to delete course", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .setNegativeButton("Cancel", null)
+            .show()
+    }
+
 }

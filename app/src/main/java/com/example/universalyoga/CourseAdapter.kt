@@ -10,7 +10,7 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
 class CourseAdapter(
-    private val courseList: List<Course>,
+    private val getCourseList: () -> List<Course>,
     private val listener: OnItemClickListener
 ) : RecyclerView.Adapter<CourseAdapter.CourseViewHolder>() {
 
@@ -30,7 +30,7 @@ class CourseAdapter(
             itemView.setOnClickListener{
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    listener.onItemClick(courseList[position])
+                    listener.onItemClick(getCourseList()[position])
                 }
             }
         }
@@ -46,7 +46,7 @@ class CourseAdapter(
     }
 
     override fun onBindViewHolder(holder: CourseAdapter.CourseViewHolder, position: Int) {
-        val course = courseList[position]
+        val course = getCourseList()[position]
         holder.tvCourseTitle.text = course.type
         holder.tvCourseDay.text = course.day.toString()
         holder.tvCourseTime.text = course.time
@@ -56,6 +56,6 @@ class CourseAdapter(
     }
 
     override fun getItemCount(): Int {
-        return courseList.size;
+        return getCourseList().size
     }
 }

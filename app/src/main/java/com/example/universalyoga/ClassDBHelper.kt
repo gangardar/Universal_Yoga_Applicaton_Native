@@ -16,7 +16,7 @@ import java.text.SimpleDateFormat
 import java.time.DayOfWeek
 import java.util.UUID
 
-class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION){
+class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION){
     companion object{
         const val DATABASE_VERSION = 1
         const val DATABASE_NAME = "Courses.db"
@@ -86,16 +86,7 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         if (cursor.moveToFirst()) {
             do {
                 val course = Course(
-                    id = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ID)),
-                    day = DayOfWeek.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DAY))),
-                    time = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TIME)),
-                    capacity = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_CAPACITY)),
-                    duration = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_DURATION)),
-                    price = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_PRICE)),
-                    type = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TYPE)),
-                    description = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)),
-                    imageUrl = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_IMAGE_URL)),
-                    isActive = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_ACTIVE)) == 1,
+
                     createdAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CREATED_AT))) ,
                     updatedAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_UPDATED_AT)))
                 )

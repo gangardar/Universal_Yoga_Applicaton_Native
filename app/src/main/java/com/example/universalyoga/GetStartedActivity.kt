@@ -25,9 +25,9 @@ class GetStartedActivity : AppCompatActivity() {
             insets
         }
 
-        val courses = courseDBHelper.getAllCourses();
+
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, BriefCourseFragment(courses))
+            .replace(R.id.fragment_container, BriefCourseFragment({ courseDBHelper.getAllCourses() }))
             .addToBackStack(null)
             .commit()
 

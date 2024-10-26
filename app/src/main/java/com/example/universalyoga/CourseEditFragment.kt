@@ -1,7 +1,7 @@
 package com.example.universalyoga
 
-import CourseConfirmDialog
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -20,14 +20,14 @@ import java.io.FileOutputStream
 import java.io.IOException
 import java.time.DayOfWeek
 
+class CourseEditFragment(
+    private val course: Course,
+    private val updateCourse: (Course) -> Int
+) : Fragment(R.layout.course_form) {
 
-class AddCourseFragment : Fragment(R.layout.course_form){
-
-    lateinit var courseDBHelper: CourseDBHelper
     lateinit var binding: CourseFormBinding
     private lateinit var pickImageLauncher: ActivityResultLauncher<String>
     private var selectedImageUri: Uri? = null
-
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
         binding = CourseFormBinding.inflate(inflater, container, false)
@@ -35,17 +35,31 @@ class AddCourseFragment : Fragment(R.layout.course_form){
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
         super.onViewCreated(view, savedInstanceState)
-        courseDBHelper = CourseDBHelper(requireContext())
+
         // Set up the AutoCompleteTextView
-        val types = mutableListOf(R.array.types)
+        val types = resources.getStringArray(R.array.types).toMutableList()
         val spinnerAdapter = ArrayAdapter(requireContext(), com.google.android.material.R.layout.support_simple_spinner_dropdown_item, types)
         binding.autoCompleteTypeCourse.setAdapter(spinnerAdapter)
+
+        // Prepopulate the form with the existing course data
+        binding.autoCompleteTypeCourse.setText(course.type, false)
+        binding.etPrice.setText(course.price.toString())
+        binding.autoCompleteTimeCourse.setText(course.time)
+        binding.etCapacity.setText(course.capacity.toString())
+        binding.etDuration.setText(course.duration.toString())
+        binding.etDescription.setText(course.description)
+        binding.spDate.setSelection(course.day.ordinal)
+
+        if (course.imageUrl.isNotEmpty()) {
+            selectedImageUri = Uri.parse(course.imageUrl)
+            binding.ivCourse.setImageURI(selectedImageUri)
+        }
 
         binding.fabAddImg.setOnClickListener {
             pickImageFromGallery()
         }
+
         pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
             if (uri != null) {
                 // Request persistable permission for the content URI
@@ -65,58 +79,36 @@ class AddCourseFragment : Fragment(R.layout.course_form){
             }
         }
 
-
-
-//        pickImageLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
-//            if (uri != null) {
-//                selectedImageUri = uri
-//                binding.ivCourse.setImageURI(uri)  // Show the selected image
-//
-//                // Save the image to internal storage and update the Course imageUrl
-//                val savedImagePath = saveImageToAppStorage(uri)
-//                if (savedImagePath != null) {
-//                    // Update the imageUrl field in your Course object
-//                    course.imageUrl = savedImagePath
-//                }
-//            }
-//        }
-
-        // Set up the button click listener
+        // Set up the button click listener for updating the course
+        binding.btnAdd.text = "Update Course"
         binding.btnAdd.setOnClickListener {
-            // Show the confirmation dialog before adding the course
-            val course = validateCourseForm()
-
-            if (course != null) {
-                val dialog = CourseConfirmDialog.newInstance(
-                    onConfirm = {
-                        val result = courseDBHelper.createCourse(course)
-                        if (result != -1L) {
-                            Toast.makeText(requireContext(), "Course added successfully!", Toast.LENGTH_SHORT).show()
-                            clearForm() // Clear the form after successful addition
-                        } else {
-                            Toast.makeText(requireContext(), "Failed to add course", Toast.LENGTH_SHORT).show()
+            val updatedCourse = validateCourseForm()
+            if (updatedCourse != null) {
+                val result = updateCourse(updatedCourse)
+                if (result > 0) {
+                    Toast.makeText(requireContext(), "Course updated successfully!", Toast.LENGTH_SHORT).show()
+                    AlertDialog.Builder(requireContext())
+                        .setTitle("Updated")
+                        .setMessage("What to go back?")
+                        .setPositiveButton("Go Back") { _, _ ->
+                            requireActivity().supportFragmentManager.popBackStack() // Go back to previous fragment
                         }
-                    },
-                    course = course // Pass the course object to display in the dialog
-                )
-                dialog.show(parentFragmentManager, CourseConfirmDialog.TAG)
+                        .setNegativeButton("Cancel", null)
+                        .show()
+                } else {
+                    Toast.makeText(requireContext(), "Failed to update course", Toast.LENGTH_SHORT).show()
+                }
             } else {
                 Toast.makeText(requireContext(), "Please correct the errors in the form", Toast.LENGTH_SHORT).show()
             }
         }
-
     }
-
-
 
     private fun pickImageFromGallery() {
         pickImageLauncher.launch("image/*")
     }
 
-
-
     private fun validateCourseForm(): Course? {
-        // Extract views from the form
         val courseTypeAutoComplete = binding.autoCompleteTypeCourse
         val etPrice = binding.etPrice
         val etTime = binding.autoCompleteTimeCourse
@@ -142,11 +134,12 @@ class AddCourseFragment : Fragment(R.layout.course_form){
             isValid = false
         }
 
+        // Validate Time
         val timePattern = Regex("^(?:[01]\\d|2[0-3]):[0-5]\\d$")
-        if (etTime.text.isNullOrEmpty()){
+        if (etTime.text.isNullOrEmpty()) {
             etTime.error = "Time is required"
             isValid = false
-        } else  if (!timePattern.matches(etTime.text)){
+        } else if (!timePattern.matches(etTime.text)) {
             etTime.error = "Enter time in (HH:MM) format."
             isValid = false
         }
@@ -169,13 +162,13 @@ class AddCourseFragment : Fragment(R.layout.course_form){
             isValid = false
         }
 
-        // If any validation fails, return null
+        // If validation fails, return null
         if (!isValid) return null
 
-        // Get the day from the spinner (assuming it has day values set in it)
+        // Get the selected day from the spinner
         val selectedDay = DayOfWeek.valueOf(spDate.selectedItem.toString().uppercase())
 
-        // Get the values from the fields
+        // Create the updated Course object
         val courseType = courseTypeAutoComplete.text.toString()
         val price = etPrice.text.toString().toDouble()
         val time = etTime.text.toString()
@@ -184,36 +177,17 @@ class AddCourseFragment : Fragment(R.layout.course_form){
         val description = etDescription.text.toString()
         val imageUrl = selectedImageUri?.toString() ?: ""
 
-        // Return a new Course object with validated inputs
-        return Course(
-            id = "", // UUID will be generated in `createCourse`
+        return course.copy(
             day = selectedDay,
-            time = time, // Assume a fixed time for now (adjust as necessary)
+            time = time,
             capacity = capacity,
             duration = duration,
             price = price,
             type = courseType,
             description = description,
-            imageUrl = imageUrl, // Handle image URL logic
-            isActive = true, // Assume default value, update based on form if necessary
-            createdAt = java.sql.Timestamp(System.currentTimeMillis()),
+            imageUrl = imageUrl,
             updatedAt = java.sql.Timestamp(System.currentTimeMillis())
         )
-    }
-
-
-    private fun clearForm() {
-        // Directly clear text in each EditText and AutoCompleteTextView
-        binding.autoCompleteTypeCourse.text.clear()    // AutoCompleteTextView
-        binding.etPrice.text.clear()                   // EditText for Price
-        binding.autoCompleteTimeCourse.text.clear()    // EditText for Time
-        binding.etCapacity.text.clear()                // EditText for Capacity
-        binding.etDuration.text?.clear()                // EditText for Duration
-        binding.etDescription.text.clear()
-
-        binding.ivCourse.setImageResource(R.drawable.kids_yoga)
-        selectedImageUri = null
-
     }
 
     private fun saveImageToAppStorage(uri: Uri): String? {
@@ -239,6 +213,4 @@ class AddCourseFragment : Fragment(R.layout.course_form){
             return null
         }
     }
-
-
 }

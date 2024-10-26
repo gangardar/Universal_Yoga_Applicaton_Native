@@ -18,7 +18,7 @@ private const val ARG_PARAM2 = "param2"
  * Use the [BriefCourseFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class BriefCourseFragment(private val courses: List<Course>) : Fragment(), CourseAdapter.OnItemClickListener {
+class BriefCourseFragment(private val getCourseList: () -> List<Course>,) : Fragment(), CourseAdapter.OnItemClickListener {
     private lateinit var recyclerView: RecyclerView
     private lateinit var courseAdapter: CourseAdapter
 
@@ -29,7 +29,7 @@ class BriefCourseFragment(private val courses: List<Course>) : Fragment(), Cours
         recyclerView = view.findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL,false)
 
-        courseAdapter = CourseAdapter(courses, this)
+        courseAdapter = CourseAdapter(getCourseList, this)
         recyclerView.adapter = courseAdapter
 
         return view
