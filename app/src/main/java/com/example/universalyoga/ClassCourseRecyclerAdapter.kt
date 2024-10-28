@@ -1,24 +1,18 @@
 package com.example.universalyoga
 
-import android.content.Context
-import android.graphics.Paint
-import android.text.Html
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 
-class CourseAdapter(
-    private val getCourseList: () -> List<Course>,
-    private val listener: OnItemClickListener
-) : RecyclerView.Adapter<CourseAdapter.CourseViewHolder>() {
+class ClassCourseRecyclerAdapter(
+    private val course: Course?,
+    private val listener: ClassActionFragment
+) : RecyclerView.Adapter<ClassCourseRecyclerAdapter.CourseViewHolder>() {
 
     interface OnItemClickListener {
         fun onItemClick(course: Course)
-        fun onAssignToClassClick(course: Course)
     }
 
     inner class CourseViewHolder(itemView : View) : RecyclerView.ViewHolder(itemView) {
@@ -34,14 +28,7 @@ class CourseAdapter(
             itemView.setOnClickListener{
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    listener.onItemClick(getCourseList()[position])
-                }
-            }
-
-            assignToClass.setOnClickListener {
-                val position = adapterPosition
-                if (position != RecyclerView.NO_POSITION) {
-                    listener.onAssignToClassClick(getCourseList()[position])
+                    listener.onItemClick(course)
                 }
             }
         }
@@ -52,23 +39,22 @@ class CourseAdapter(
     override fun onCreateViewHolder(
         parent: ViewGroup,
         viewType: Int
-    ): CourseAdapter.CourseViewHolder {
+    ): ClassCourseRecyclerAdapter.CourseViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.course_brief_view,parent,false)
         return CourseViewHolder(view)
     }
 
-    override fun onBindViewHolder(holder: CourseAdapter.CourseViewHolder, position: Int) {
-        val course = getCourseList()[position]
-        holder.tvCourseTitle.text = course.type
-        holder.tvCourseDay.text = course.day.toString()
-        holder.tvCourseTime.text = course.time
-        holder.tvCapacity.text = "Capacity: ${course.capacity}"
-        holder.tvDuration.text = "Duration: ${course.duration} min"
-        holder.tvPrice.text = "Price: £${course.price}"
-        holder.assignToClass.setText(Html.fromHtml("<u>Assign to new Class -></u>"));
+    override fun onBindViewHolder(holder: ClassCourseRecyclerAdapter.CourseViewHolder, position: Int) {
+        holder.tvCourseTitle.text = course?.type ?: ""
+        holder.tvCourseDay.text = course?.day.toString()
+        holder.tvCourseTime.text = course?.time ?: "10:00"
+        holder.tvCapacity.text = "Capacity: ${course?.capacity}"
+        holder.tvDuration.text = "Duration: ${course?.duration} min"
+        holder.tvPrice.text = "Price: £${course?.price}"
+        holder.assignToClass.visibility = View.GONE
     }
 
     override fun getItemCount(): Int {
-        return getCourseList().size
+        return 1;
     }
 }

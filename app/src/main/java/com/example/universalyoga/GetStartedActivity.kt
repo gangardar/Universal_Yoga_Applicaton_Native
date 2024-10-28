@@ -12,6 +12,7 @@ import com.example.universalyoga.databinding.ActivityGetStartedBinding
 class GetStartedActivity : AppCompatActivity() {
     lateinit var binding: ActivityGetStartedBinding
     lateinit var courseDBHelper: CourseDBHelper
+    lateinit var classDBHelper: ClassDBHelper
     lateinit var toggle: ActionBarDrawerToggle
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -19,6 +20,7 @@ class GetStartedActivity : AppCompatActivity() {
         binding = ActivityGetStartedBinding.inflate(layoutInflater);
         setContentView(binding.root)
         courseDBHelper = CourseDBHelper(this)
+        classDBHelper = ClassDBHelper(this)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -27,7 +29,11 @@ class GetStartedActivity : AppCompatActivity() {
 
 
         supportFragmentManager.beginTransaction()
-            .replace(R.id.fragment_container, BriefCourseFragment({ courseDBHelper.getAllCourses() }))
+            .replace(R.id.fragment_container, BriefFragment(
+                { courseDBHelper.getAllCourses() },
+                { classDBHelper.getAllClasses() },
+                { id -> courseDBHelper.getCourseById(id.toString()) }
+            ))
             .addToBackStack(null)
             .commit()
 
@@ -48,6 +54,7 @@ class GetStartedActivity : AppCompatActivity() {
 
 
                 }
+
             }
             binding.main.closeDrawer(binding.navView)
             true

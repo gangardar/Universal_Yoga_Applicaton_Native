@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:layout_margin="10dp"
+    android:layout_margin="8dp"
     android:padding="8dp"
     android:background="@drawable/card_background"
     android:layout_marginBottom="8dp">
@@ -74,13 +74,33 @@
     </LinearLayout>
 
     <!-- Price -->
-    <TextView
-        android:id="@+id/tvPrice"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Price: £10"
-        android:textSize="18sp"
-        android:textColor="@color/black"
-        android:layout_marginBottom="8dp" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvPrice"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Price: £10"
+            android:textSize="18sp"
+            android:textColor="@color/black"
+            android:layout_marginBottom="8dp" />
+
+        <TextView
+            android:id="@+id/tvAssignClass"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:text="Assign to new Class ->"
+            android:textSize="18sp"
+            android:textColor="@color/primary_text"
+            android:layout_marginBottom="8dp" />
+
+
+    </LinearLayout>
+
 
 </LinearLayout>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/card_background"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:layout_margin="10dp"
+    android:elevation="4dp">
+
+    <!-- Class Title -->
+    <TextView
+        android:id="@+id/tvClassTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="10/10/2024 By Teacher"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:textColor="@color/primary_text"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Class Description -->
+    <TextView
+        android:id="@+id/tvClassDescription"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="This is a brief description of the class."
+        android:textSize="18sp"
+        android:textColor="@color/black"
+        android:layout_marginBottom="10dp" />
+
+
+    <!-- Additional Details -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="5dp"
+        android:orientation="horizontal">
+
+        <!-- Capacity or Duration Info -->
+        <TextView
+            android:id="@+id/tvClassDay"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Day: Monday"
+            android:textSize="17sp"
+            android:textColor="@color/black"
+            android:layout_marginEnd="16dp" />
+
+        <!-- Class Price -->
+        <TextView
+            android:id="@+id/tvTeacher"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Teacher: Daw Wah Wah"
+            android:textSize="16sp"
+            android:textColor="@color/black" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <!-- Capacity or Duration Info -->
+        <TextView
+            android:id="@+id/tvClassCapacity"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Capacity: 20"
+            android:textSize="17sp"
+            android:textColor="@color/black"
+            android:layout_marginEnd="16dp" />
+
+        <!-- Class Price -->
+        <TextView
+            android:id="@+id/tvClassPrice"
+            android:layout_weight="1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Price: £50"
+            android:textSize="17sp"
+            android:textColor="@color/black" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvComment"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Comment: $50"
+        android:textSize="17sp"
+        android:layout_marginTop="8dp"
+        android:textColor="@color/black" />
+
+</LinearLayout>

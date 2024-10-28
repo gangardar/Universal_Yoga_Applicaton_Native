@@ -6,4 +6,9 @@
         android:title="Add Course"
         android:icon="@drawable/ic_add" />
 
+    <item
+        android:id="@+id/nav_add_class"
+        android:title="Add Class"
+        android:icon="@drawable/ic_add" />
+
 </menu>

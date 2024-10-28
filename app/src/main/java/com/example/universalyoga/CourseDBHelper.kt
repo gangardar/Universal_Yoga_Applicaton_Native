@@ -19,7 +19,7 @@ import java.util.UUID
 class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION){
     companion object{
         const val DATABASE_VERSION = 1
-        const val DATABASE_NAME = "Courses.db"
+        const val DATABASE_NAME = "Yoga.db"
         const val TABLE_NAME = "courses"
         const val COLUMN_ID = "id"
         const val COLUMN_DAY = "day"
@@ -33,6 +33,12 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COLUMN_IS_ACTIVE = "isActive"
         const val COLUMN_CREATED_AT = "createdAt"
         const val COLUMN_UPDATED_AT = "updatedAt"
+//        Additional for Class Table
+        const val CLASS_TABLE_NAME = "classes"
+        const val COLUMN_COURSE_ID = "courseId"
+        const val COLUMN_DATE = "date"
+        const val COLUMN_TEACHER = "teacher"
+        const val COLUMN_COMMENT = "comment"
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
@@ -49,11 +55,26 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 "$COLUMN_IS_ACTIVE INTEGER, " +                        // Active status as INTEGER (0 = false, 1 = true)
                 "$COLUMN_CREATED_AT TEXT, " +                          // Creation timestamp as TEXT
                 "$COLUMN_UPDATED_AT TEXT)" )                           // Update timestamp as TEXT
+
+        val CREATE_CLASS_TABLE = """
+        CREATE TABLE $CLASS_TABLE_NAME (
+            $COLUMN_ID TEXT PRIMARY KEY,
+            $COLUMN_COURSE_ID TEXT,
+            $COLUMN_DATE TEXT,
+            $COLUMN_TEACHER TEXT,
+            $COLUMN_COMMENT TEXT,
+            $COLUMN_CREATED_AT TEXT,
+            $COLUMN_UPDATED_AT TEXT,
+            FOREIGN KEY($COLUMN_COURSE_ID) REFERENCES $TABLE_NAME($COLUMN_ID) ON DELETE CASCADE
+        )
+    """
+        db?.execSQL(CREATE_CLASS_TABLE)
         db?.execSQL(CREATE_COURSE_TABLE)
     }
 
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
-        db?.execSQL("DROP TABLE IF EXISTS $TABLE_NAME");
+        db?.execSQL("DROP TABLE IF EXISTS $TABLE_NAME")
+        db?.execSQL("DROP TABLE IF EXISTS $CLASS_TABLE_NAME")
         onCreate(db)
     }
 
@@ -105,6 +126,32 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         cursor.close()
         return courses
     }
+
+    fun getCourseById(id: String): Course? {
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME WHERE $COLUMN_ID = ?", arrayOf(id))
+
+        var course: Course? = null
+        if (cursor.moveToFirst()) {
+            course = Course(
+                id = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                day = DayOfWeek.valueOf(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DAY))),
+                time = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TIME)),
+                capacity = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_CAPACITY)),
+                duration = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_DURATION)),
+                price = cursor.getDouble(cursor.getColumnIndexOrThrow(COLUMN_PRICE)),
+                type = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TYPE)),
+                description = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DESCRIPTION)),
+                imageUrl = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_IMAGE_URL)),
+                isActive = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_ACTIVE)) == 1,
+                createdAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CREATED_AT))),
+                updatedAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_UPDATED_AT)))
+            )
+        }
+        cursor.close()
+        return course
+    }
+
 
     fun deleteCourse(id:String,imageURL: String): Int {
         val db = this.writableDatabase
