@@ -50,8 +50,8 @@ class ClassAdapter(
         val dateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         val date = dateFormat.format(classItem.date)
 
-        holder.tvClassTitle.text = "${date} ${classItem.teacher}"
-        holder.tvClassDescription.text = courseItem?.description
+        holder.tvClassTitle.text = "${date} By ${classItem.teacher}"
+        holder.tvClassDescription.text = "Description: ${courseItem?.description}"
 
         holder.tvClassDay.text = "Day: ${courseItem?.day}"
         holder.tvClassCapacity.text = "Capacity: ${courseItem?.capacity}"

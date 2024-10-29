@@ -197,7 +197,8 @@ class AddCourseFragment : Fragment(R.layout.course_form){
             imageUrl = imageUrl, // Handle image URL logic
             isActive = true, // Assume default value, update based on form if necessary
             createdAt = java.sql.Timestamp(System.currentTimeMillis()),
-            updatedAt = java.sql.Timestamp(System.currentTimeMillis())
+            updatedAt = java.sql.Timestamp(System.currentTimeMillis()),
+            synced = 0
         )
     }
 

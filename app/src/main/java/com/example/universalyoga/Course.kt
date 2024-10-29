@@ -15,5 +15,6 @@ data class Course(
     val imageUrl: String,      
     val isActive: Boolean,
     val createdAt: Timestamp,
-    val updatedAt: Timestamp
+    val updatedAt: Timestamp,
+    val synced : Int
 )

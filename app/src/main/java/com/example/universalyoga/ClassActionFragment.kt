@@ -17,6 +17,7 @@ import androidx.core.widget.addTextChangedListener
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.universalyoga.databinding.FragmentAddClassBinding
+import java.sql.Timestamp
 import java.util.Locale
 
 class ClassActionFragment(
@@ -94,14 +95,15 @@ class ClassActionFragment(
 
             // Create Class instance
             val date = timestamp?.let { java.sql.Timestamp(it as Long) } ?: clazz.date
-            val classInstance = Class(
+            val classInstance = com.example.universalyoga.Class(
                 id = clazz.id,
                 date = date,
                 courseId = clazz.courseId,
                 teacher = teacher,
                 comment = comment,
                 createdAt = clazz.createdAt,
-                updatedAt = java.sql.Timestamp(System.currentTimeMillis())
+                updatedAt = Timestamp(System.currentTimeMillis()),
+                synced = 0
             )
 
             // Insert class instance into database

@@ -4,7 +4,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.util.Log
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.UUID
@@ -22,6 +21,7 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
         const val COLUMN_COMMENT = "comment"
         const val COLUMN_CREATED_AT = "createdAt"
         const val COLUMN_UPDATED_AT = "updatedAt"
+        const val COLUMN_SYNCED = "synced"
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
@@ -34,6 +34,7 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
             $COLUMN_COMMENT TEXT,
             $COLUMN_CREATED_AT TEXT,
             $COLUMN_UPDATED_AT TEXT,
+            $COLUMN_SYNCED INT,
             FOREIGN KEY($COLUMN_COURSE_ID) REFERENCES $COURSE_TABLE_NAME(id) ON DELETE CASCADE
         )
     """
@@ -56,6 +57,7 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
             put(COLUMN_COMMENT, clazz.comment)
             put(COLUMN_CREATED_AT, clazz.createdAt.toString())
             put(COLUMN_UPDATED_AT, clazz.updatedAt.toString())
+            put(COLUMN_SYNCED, 0)
         }
 
         return db.insert(TABLE_NAME, null, values)
@@ -81,13 +83,47 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
                     ))) ,
                     updatedAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(
                         COLUMN_UPDATED_AT
-                    )))
+                    ))),
+                    synced = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SYNCED)),
                 )
                 classes.add(clazz)
             } while (cursor.moveToNext())
         }
         cursor.close()
         return classes
+    }
+
+    fun getUnsyncedClass(): List<Class> {
+        val clazzes = mutableListOf<Class>()
+        val db = this.readableDatabase
+        val cursor = db.rawQuery("SELECT * FROM ${TABLE_NAME} WHERE ${COLUMN_SYNCED} = ?",
+            arrayOf("0")
+        )
+
+        var clazz: Class? = null
+        if (cursor.moveToFirst()) {
+            do {
+                val clazz = Class(
+                    id = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                    date = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(
+                        COLUMN_DATE
+                    ))),
+                    courseId = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_COURSE_ID)),
+                    teacher = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TEACHER)),
+                    comment = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_COMMENT)),
+                    createdAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(
+                        COLUMN_CREATED_AT
+                    ))) ,
+                    updatedAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(
+                        COLUMN_UPDATED_AT
+                    ))),
+                    synced = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SYNCED)),
+                )
+                clazzes.add(clazz)
+            } while (cursor.moveToNext())
+        }
+        cursor.close()
+        return clazzes
     }
 
     fun deleteClass(id:String): Int {
@@ -102,14 +138,54 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
             put("courseId", clazz.courseId)
             put("teacher", clazz.teacher)
             put("comment", clazz.comment)
+            put("synced", 0)
             put("updatedAt", Timestamp(System.currentTimeMillis()).toString()) // Update the timestamp
         }
-//        2024-10-20 23:39:08.605
 
         // Define the WHERE clause and arguments
         val selection = "id = ?"
         val selectionArgs = arrayOf(clazz.id)
-        Log.d("TAG", "updateClass: ${values}")
+        // Perform the update and return the number of rows affected
+        return db.update("classes", values, selection, selectionArgs)
+    }
+
+    fun changeToSynced(classes: List<Class>) {
+        val db = this.writableDatabase
+        db.beginTransaction() // Start a transaction for efficiency
+        try {
+            val selection = "id = ?"
+            for (clazz in classes) {
+                val selectionArgs = arrayOf(clazz.id)
+                val values = ContentValues().apply {
+                    put("date", clazz.date.toString())
+                    put("courseId", clazz.courseId)
+                    put("teacher", clazz.teacher)
+                    put("comment", clazz.comment)
+                    put("synced", 1)
+                    put("updatedAt", Timestamp(System.currentTimeMillis()).toString()) // Update the timestamp
+                }
+                db.update("classes", values, selection, selectionArgs)
+            }
+            db.setTransactionSuccessful() // Mark the transaction as successful
+        } finally {
+            db.endTransaction() // Always end the transaction, even if there's an exception
+        }
+    }
+
+    fun changeToSyncedById(clazz: Class): Int {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put("date", clazz.date.toString())
+            put("courseId", clazz.courseId)
+            put("teacher", clazz.teacher)
+            put("comment", clazz.comment)
+            put("synced", 1)
+            put("updatedAt", Timestamp(System.currentTimeMillis()).toString()) // Update the timestamp
+        }
+
+        // Define the WHERE clause and arguments
+        val selection = "id = ?"
+        val selectionArgs = arrayOf(clazz.id)
         // Perform the update and return the number of rows affected
         return db.update("classes", values, selection, selectionArgs)
     }

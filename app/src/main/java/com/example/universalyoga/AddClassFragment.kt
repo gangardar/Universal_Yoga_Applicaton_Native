@@ -11,7 +11,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import com.example.universalyoga.Class
 import com.example.universalyoga.databinding.FragmentAddClassBinding
+import java.sql.Timestamp
 import java.util.Date
 import java.util.Locale
 
@@ -52,6 +54,7 @@ class AddClassFragment(
         }
 
         binding.llClassCourse.visibility = View.GONE
+        binding.btnDeleteClass.visibility = View.GONE
 
         binding.etDate.setOnClickListener {
             // Initialize a Calendar to get the current date
@@ -104,14 +107,15 @@ class AddClassFragment(
             }
 
             // Create Class instance
-            val classInstance = Class(
+            val classInstance = com.example.universalyoga.Class(
                 id = "",  // UUID will be generated in `createClass`
-                date =java.sql.Timestamp(timestamp as Long),
+                date = Timestamp(timestamp as Long),
                 courseId = course.id,
                 teacher = teacher,
                 comment = comment,
-                createdAt = java.sql.Timestamp(System.currentTimeMillis()),
-                updatedAt = java.sql.Timestamp(System.currentTimeMillis())
+                createdAt = Timestamp(System.currentTimeMillis()),
+                updatedAt = Timestamp(System.currentTimeMillis()),
+                synced = 0
             )
 
             // Insert class instance into database

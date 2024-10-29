@@ -9,5 +9,6 @@ data class Class(
     val teacher: String,
     val comment: String,
     val createdAt: Timestamp,
-    val updatedAt: Timestamp
+    val updatedAt: Timestamp,
+    val synced : Int
 )
