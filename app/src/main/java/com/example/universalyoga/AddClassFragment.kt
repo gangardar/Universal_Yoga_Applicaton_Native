@@ -115,7 +115,8 @@ class AddClassFragment(
                 comment = comment,
                 createdAt = Timestamp(System.currentTimeMillis()),
                 updatedAt = Timestamp(System.currentTimeMillis()),
-                synced = 0
+                synced = 0,
+                isDeleted = course.isDeleted
             )
 
             // Insert class instance into database

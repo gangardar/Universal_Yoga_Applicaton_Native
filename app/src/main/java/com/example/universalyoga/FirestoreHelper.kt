@@ -17,6 +17,7 @@ class FirestoreHelper {
             "description" to course.description,
             "imageUrl" to course.imageUrl,
             "isActive" to course.isActive,
+            "isDeleted" to course.isDeleted,
             "createdAt" to course.createdAt,
             "updatedAt" to course.updatedAt
         )
@@ -36,6 +37,7 @@ class FirestoreHelper {
             "date" to clazz.date,
             "teacher" to clazz.teacher,
             "comment" to clazz.comment,
+            "isDeleted" to clazz.isDeleted,
             "createdAt" to clazz.createdAt,
             "updatedAt" to clazz.updatedAt
         )

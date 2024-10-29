@@ -10,5 +10,6 @@ data class Class(
     val comment: String,
     val createdAt: Timestamp,
     val updatedAt: Timestamp,
-    val synced : Int
+    val synced : Int,
+    val isDeleted : Int
 )

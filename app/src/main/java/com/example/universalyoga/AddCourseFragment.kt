@@ -198,7 +198,8 @@ class AddCourseFragment : Fragment(R.layout.course_form){
             isActive = true, // Assume default value, update based on form if necessary
             createdAt = java.sql.Timestamp(System.currentTimeMillis()),
             updatedAt = java.sql.Timestamp(System.currentTimeMillis()),
-            synced = 0
+            synced = 0,
+            isDeleted = 0
         )
     }
 

@@ -66,7 +66,7 @@ class ClassActionFragment(
                 .setTitle("Delete Course")
                 .setMessage("Are you sure you want to delete this class?")
                 .setPositiveButton("Delete") { _, _ ->
-                    val deletedRows = classDBHelper.deleteClass(clazz.id)
+                    val deletedRows = classDBHelper.softDelete(clazz)
                     if (deletedRows > 0) {
                         Toast.makeText(requireContext(), "Class deleted successfully", Toast.LENGTH_SHORT).show()
                         // Go back or update the UI
@@ -103,7 +103,8 @@ class ClassActionFragment(
                 comment = comment,
                 createdAt = clazz.createdAt,
                 updatedAt = Timestamp(System.currentTimeMillis()),
-                synced = 0
+                synced = 0,
+                isDeleted = clazz.isDeleted
             )
 
             // Insert class instance into database
@@ -218,7 +219,6 @@ class ClassActionFragment(
 
     private fun showCourseData() {
         course = courseDBHelper.getCourseById(clazz.courseId)!!
-
         courseRecyclerView = binding.addClassCourseList
         courseRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         courseAdapter = ClassCourseRecyclerAdapter(course, this)

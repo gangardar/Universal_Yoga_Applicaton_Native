@@ -4,13 +4,6 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import android.net.Uri
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContentProviderCompat.requireContext
-import java.io.File
-import java.io.FileOutputStream
-import java.io.IOException
-import java.net.URL
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.time.DayOfWeek
@@ -34,6 +27,7 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         const val COLUMN_CREATED_AT = "createdAt"
         const val COLUMN_UPDATED_AT = "updatedAt"
         const val COLUMN_SYNCED = "synced"
+        const val COLUMN_ISDELETED = "isDeleted"
 //        Additional for Class Table
         const val CLASS_TABLE_NAME = "classes"
         const val COLUMN_COURSE_ID = "courseId"
@@ -55,6 +49,7 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 "$COLUMN_IMAGE_URL TEXT, " +                           // Image URL as TEXT
                 "$COLUMN_IS_ACTIVE INTEGER, " +                        // Active status as INTEGER (0 = false, 1 = true)
                 "$COLUMN_SYNCED INTEGER, " +
+                "$COLUMN_ISDELETED INTEGER, " +
                 "$COLUMN_CREATED_AT TEXT, " +                          // Creation timestamp as TEXT
                 "$COLUMN_UPDATED_AT TEXT)" )                           // Update timestamp as TEXT
 
@@ -68,6 +63,7 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             $COLUMN_CREATED_AT TEXT,
             $COLUMN_UPDATED_AT TEXT,
             $COLUMN_SYNCED INTEGER,
+            $COLUMN_ISDELETED INTEGER,
             FOREIGN KEY($COLUMN_COURSE_ID) REFERENCES $TABLE_NAME($COLUMN_ID) ON DELETE CASCADE
         )
     """
@@ -95,6 +91,7 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             put(COLUMN_DESCRIPTION, course.description )
             put(COLUMN_IMAGE_URL, course.imageUrl)  // Storing image URL as TEXT
             put(COLUMN_SYNCED, 0)
+            put(COLUMN_ISDELETED, 0)
             put(COLUMN_IS_ACTIVE, if (course.isActive) 1 else 0)
             put(COLUMN_CREATED_AT, course.createdAt.toString())
             put(COLUMN_UPDATED_AT, course.updatedAt.toString())
@@ -106,7 +103,7 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
     fun getAllCourses(): List<Course> {
         val courses = mutableListOf<Course>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME", null)
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME WHERE $COLUMN_ISDELETED = ?", arrayOf("0"))
 
         if (cursor.moveToFirst()) {
             do {
@@ -122,6 +119,7 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     imageUrl = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_IMAGE_URL)),
                     isActive = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_ACTIVE)) == 1,
                     synced = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SYNCED)),
+                    isDeleted = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ISDELETED)),
                     createdAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CREATED_AT))) ,
                     updatedAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_UPDATED_AT)))
                 )
@@ -134,7 +132,7 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
 
     fun getCourseById(id: String): Course? {
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME WHERE $COLUMN_ID = ?", arrayOf(id))
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME WHERE $COLUMN_ID = ? AND $COLUMN_ISDELETED = ?", arrayOf(id,"0"))
 
         var course: Course? = null
         if (cursor.moveToFirst()) {
@@ -150,6 +148,7 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                 imageUrl = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_IMAGE_URL)),
                 isActive = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_ACTIVE)) == 1,
                 synced = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SYNCED)),
+                isDeleted = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ISDELETED)),
                 createdAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CREATED_AT))),
                 updatedAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_UPDATED_AT)))
             )
@@ -180,6 +179,7 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     imageUrl = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_IMAGE_URL)),
                     isActive = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_IS_ACTIVE)) == 1,
                     synced = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SYNCED)),
+                    isDeleted = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ISDELETED)),
                     createdAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CREATED_AT))) ,
                     updatedAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_UPDATED_AT)))
                 )
@@ -190,10 +190,34 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return courses
     }
 
-
-    fun deleteCourse(id:String,imageURL: String): Int {
+    fun deleteCourse(id:String, imageURL: String): Int {
         val db = this.writableDatabase
         return db.delete(TABLE_NAME,"$COLUMN_ID=?", arrayOf(id.toString()))
+    }
+
+
+    fun softDelete(course: Course): Int {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put("day", course.day.name)
+            put("time", course.time)
+            put("capacity", course.capacity)
+            put("duration", course.duration)
+            put("price", course.price)
+            put("type", course.type)
+            put("description", course.description)
+            put("imageUrl", course.imageUrl)
+            put("synced", 0)
+            put("isDeleted", 1)
+            put("updatedAt", Timestamp(System.currentTimeMillis()).toString()) // Update the timestamp
+        }
+
+        // Define the WHERE clause and arguments
+        val selection = "id = ?"
+        val selectionArgs = arrayOf(course.id)
+
+        // Perform the update and return the number of rows affected
+        return db.update("courses", values, selection, selectionArgs)
     }
 
     fun updateCourse(course: Course): Int {

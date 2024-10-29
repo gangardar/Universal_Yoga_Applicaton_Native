@@ -2,7 +2,6 @@ package com.example.universalyoga
 
 import android.app.AlertDialog
 import android.content.Intent
-import android.inputmethodservice.Keyboard.Row
 import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -10,7 +9,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -89,7 +87,7 @@ class CourseDetailFragment(private val course: Course) : Fragment() {
             .setTitle("Delete Course")
             .setMessage("Are you sure you want to delete this course?")
             .setPositiveButton("Delete") { _, _ ->
-                val deletedRows = courseDBHelper.deleteCourse(course.id,course.imageUrl)
+                val deletedRows = courseDBHelper.softDelete(course)
                 if (deletedRows > 0) {
                     Toast.makeText(requireContext(), "Course deleted successfully", Toast.LENGTH_SHORT).show()
                     // Go back or update the UI

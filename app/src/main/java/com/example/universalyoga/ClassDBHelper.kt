@@ -4,6 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import com.example.universalyoga.CourseDBHelper.Companion
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.UUID
@@ -22,6 +23,7 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
         const val COLUMN_CREATED_AT = "createdAt"
         const val COLUMN_UPDATED_AT = "updatedAt"
         const val COLUMN_SYNCED = "synced"
+        const val COLUMN_ISDELETED = "isDeleted"
     }
 
     override fun onCreate(db: SQLiteDatabase?) {
@@ -58,6 +60,7 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
             put(COLUMN_CREATED_AT, clazz.createdAt.toString())
             put(COLUMN_UPDATED_AT, clazz.updatedAt.toString())
             put(COLUMN_SYNCED, 0)
+            put(COLUMN_ISDELETED, 0)
         }
 
         return db.insert(TABLE_NAME, null, values)
@@ -66,7 +69,7 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
     fun getAllClasses(): List<Class> {
         val classes = mutableListOf<Class>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME", null)
+        val cursor = db.rawQuery("SELECT * FROM $TABLE_NAME WHERE $COLUMN_ISDELETED = ?", arrayOf("0"))
 
         if (cursor.moveToFirst()) {
             do {
@@ -85,6 +88,7 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
                         COLUMN_UPDATED_AT
                     ))),
                     synced = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SYNCED)),
+                    isDeleted = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ISDELETED)),
                 )
                 classes.add(clazz)
             } while (cursor.moveToNext())
@@ -96,7 +100,7 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
     fun getUnsyncedClass(): List<Class> {
         val clazzes = mutableListOf<Class>()
         val db = this.readableDatabase
-        val cursor = db.rawQuery("SELECT * FROM ${TABLE_NAME} WHERE ${COLUMN_SYNCED} = ?",
+        val cursor = db.rawQuery("SELECT * FROM ${TABLE_NAME} WHERE $COLUMN_SYNCED = ?",
             arrayOf("0")
         )
 
@@ -118,6 +122,7 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
                         COLUMN_UPDATED_AT
                     ))),
                     synced = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SYNCED)),
+                    isDeleted = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ISDELETED)),
                 )
                 clazzes.add(clazz)
             } while (cursor.moveToNext())
@@ -129,6 +134,25 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
     fun deleteClass(id:String): Int {
         val db = this.writableDatabase
         return db.delete(TABLE_NAME,"$COLUMN_ID=?", arrayOf(id.toString()))
+    }
+
+    fun softDelete(clazz: Class): Int {
+        val db = this.writableDatabase
+        val values = ContentValues().apply {
+            put("date", clazz.date.toString())
+            put("courseId", clazz.courseId)
+            put("teacher", clazz.teacher)
+            put("comment", clazz.comment)
+            put("synced", 0)
+            put("isDeleted", 1)
+            put("updatedAt", Timestamp(System.currentTimeMillis()).toString()) // Update the timestamp
+        }
+
+        // Define the WHERE clause and arguments
+        val selection = "id = ?"
+        val selectionArgs = arrayOf(clazz.id)
+        // Perform the update and return the number of rows affected
+        return db.update("classes", values, selection, selectionArgs)
     }
 
     fun updateClass(clazz: Class): Int {
@@ -162,6 +186,7 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
                     put("teacher", clazz.teacher)
                     put("comment", clazz.comment)
                     put("synced", 1)
+                    put("isDeleted", clazz.isDeleted)
                     put("updatedAt", Timestamp(System.currentTimeMillis()).toString()) // Update the timestamp
                 }
                 db.update("classes", values, selection, selectionArgs)
@@ -180,6 +205,7 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
             put("teacher", clazz.teacher)
             put("comment", clazz.comment)
             put("synced", 1)
+            put("isDeleted", clazz.isDeleted)
             put("updatedAt", Timestamp(System.currentTimeMillis()).toString()) // Update the timestamp
         }
 
