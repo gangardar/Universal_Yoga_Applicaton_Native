@@ -64,7 +64,7 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             $COLUMN_UPDATED_AT TEXT,
             $COLUMN_SYNCED INTEGER,
             $COLUMN_ISDELETED INTEGER,
-            FOREIGN KEY($COLUMN_COURSE_ID) REFERENCES $TABLE_NAME($COLUMN_ID) ON DELETE CASCADE
+            FOREIGN KEY($COLUMN_COURSE_ID) REFERENCES $TABLE_NAME($COLUMN_ID) ON DELETE RESTRICT
         )
     """
         db?.execSQL(CREATE_CLASS_TABLE)
@@ -190,35 +190,47 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return courses
     }
 
-    fun deleteCourse(id:String, imageURL: String): Int {
+    fun softDelete(id:String, imageURL: String): Int {
         val db = this.writableDatabase
         return db.delete(TABLE_NAME,"$COLUMN_ID=?", arrayOf(id.toString()))
     }
 
-
-    fun softDelete(course: Course): Int {
+    fun softDelete(course: Course): Boolean {
         val db = this.writableDatabase
-        val values = ContentValues().apply {
-            put("day", course.day.name)
-            put("time", course.time)
-            put("capacity", course.capacity)
-            put("duration", course.duration)
-            put("price", course.price)
-            put("type", course.type)
-            put("description", course.description)
-            put("imageUrl", course.imageUrl)
-            put("synced", 0)
-            put("isDeleted", 1)
-            put("updatedAt", Timestamp(System.currentTimeMillis()).toString()) // Update the timestamp
+
+        // Check if there are any dependent classes for this course
+        val classCount = db.query(
+            "Classes",
+            arrayOf("id"),
+            "courseId = ?",
+            arrayOf(course.id),
+            null,
+            null,
+            null
+        ).count
+
+        return if (classCount > 0) {
+            // Dependent classes exist, restrict deletion
+            false
+        } else {
+            // No dependencies, proceed with soft deletion
+            val values = ContentValues().apply {
+                put("day", course.day.name)
+                put("time", course.time)
+                put("capacity", course.capacity)
+                put("duration", course.duration)
+                put("price", course.price)
+                put("type", course.type)
+                put("description", course.description)
+                put("imageUrl", course.imageUrl)
+                put("synced", 0)
+                put("isDeleted", 1)
+                put("updatedAt", Timestamp(System.currentTimeMillis()).toString()) // Update the timestamp
+            }
+            db.update("Courses", values, "id = ?", arrayOf(course.id)) > 0
         }
-
-        // Define the WHERE clause and arguments
-        val selection = "id = ?"
-        val selectionArgs = arrayOf(course.id)
-
-        // Perform the update and return the number of rows affected
-        return db.update("courses", values, selection, selectionArgs)
     }
+
 
     fun updateCourse(course: Course): Int {
         val db = this.writableDatabase
@@ -244,6 +256,47 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return db.update("courses", values, selection, selectionArgs)
     }
 
+    fun insertOrUpdateCourse(course: Course) {
+        val remoteCreateAt = course.createdAt.time
+        val remoteUpdatedAtMillis = course.updatedAt.time
+        val db = this.writableDatabase
+
+        // Query to check if the course exists and its updatedAt timestamp
+        val selection = "${COLUMN_ID} = ?"
+        val selectionArgs = arrayOf(course.id)
+        val cursor = db.query(TABLE_NAME, arrayOf(COLUMN_UPDATED_AT), selection, selectionArgs, null, null, null)
+
+        val values = ContentValues().apply {
+            put("id", course.id)
+            put("day", course.day.name)
+            put("time", course.time)
+            put("capacity", course.capacity)
+            put("duration", course.duration)
+            put("price", course.price)
+            put("type", course.type)
+            put("description", course.description)
+            put("imageUrl", course.imageUrl)
+            put("synced", 1)
+            put("isDeleted", course.isDeleted)
+            put("createdAt",Timestamp(remoteUpdatedAtMillis).toString())
+            put("updatedAt", Timestamp(remoteCreateAt).toString())
+        }
+
+        if (cursor.moveToFirst()) {
+            val localUpdatedAtMillis = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_UPDATED_AT))
+
+            // Update only if the remote updatedAt is later
+            if (remoteUpdatedAtMillis > localUpdatedAtMillis) {
+
+                db.update(TABLE_NAME, values, selection, selectionArgs)
+            }
+        } else {
+            db.insert(TABLE_NAME, null, values)
+        }
+
+        cursor.close()
+    }
+
     fun changeToSynced(courses: List<Course>) {
         val db = this.writableDatabase
         db.beginTransaction() // Start a transaction for efficiency
@@ -261,7 +314,6 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
                     put("description", course.description)
                     put("imageUrl", course.imageUrl)
                     put("synced", 1)
-                    put("updatedAt", Timestamp(System.currentTimeMillis()).toString()) // Update the timestamp
                 }
                 db.update("classes", values, selection, selectionArgs)
             }
@@ -283,7 +335,6 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
             put("description", course.description)
             put("imageUrl", course.imageUrl)
             put("synced", 1)
-            put("updatedAt", Timestamp(System.currentTimeMillis()).toString()) // Update the timestamp
         }
 
         // Define the WHERE clause and arguments

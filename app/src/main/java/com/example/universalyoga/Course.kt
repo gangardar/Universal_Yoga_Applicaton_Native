@@ -12,10 +12,10 @@ data class Course(
     val price: Double,
     val type: String,
     val description: String,
-    val imageUrl: String,      
+    val imageUrl: String,
     val isActive: Boolean,
     val createdAt: Timestamp,
     val updatedAt: Timestamp,
-    val synced : Int,
-    val isDeleted : Int
+    val synced: Int,
+    val isDeleted: Int
 )

@@ -88,12 +88,12 @@ class CourseDetailFragment(private val course: Course) : Fragment() {
             .setMessage("Are you sure you want to delete this course?")
             .setPositiveButton("Delete") { _, _ ->
                 val deletedRows = courseDBHelper.softDelete(course)
-                if (deletedRows > 0) {
+                if (deletedRows) {
                     Toast.makeText(requireContext(), "Course deleted successfully", Toast.LENGTH_SHORT).show()
                     // Go back or update the UI
                     requireActivity().supportFragmentManager.popBackStack() // Go back to previous fragment
                 } else {
-                    Toast.makeText(requireContext(), "Failed to delete course", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(requireContext(), "Cannot delete this course because it has associated classes.", Toast.LENGTH_SHORT).show()
                 }
             }
             .setNegativeButton("Cancel", null)

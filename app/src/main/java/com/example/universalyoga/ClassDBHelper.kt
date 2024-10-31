@@ -173,6 +173,44 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
         return db.update("classes", values, selection, selectionArgs)
     }
 
+    fun insertOrUpdateClasses(clazz: Class) {
+        val remoteCreateAt = clazz.createdAt.time
+        val remoteUpdatedAtMillis = clazz.updatedAt.time
+        val dateFromRemote = clazz.date.time
+        val db = this.writableDatabase
+
+        // Query to check if the course exists and its updatedAt timestamp
+        val selection = "${COLUMN_ID} = ?"
+        val selectionArgs = arrayOf(clazz.id)
+        val cursor = db.query(TABLE_NAME, arrayOf(COLUMN_UPDATED_AT), selection, selectionArgs, null, null, null)
+
+        val values = ContentValues().apply {
+            put("id", clazz.id)
+            put("date", Timestamp(dateFromRemote).toString())
+            put("courseId", clazz.courseId)
+            put("comment", clazz.comment)
+            put("teacher", clazz.teacher)
+            put("isDeleted", clazz.isDeleted)
+            put("synced", 1)
+            put("createdAt",Timestamp(remoteUpdatedAtMillis).toString())
+            put("updatedAt", Timestamp(remoteCreateAt).toString())
+        }
+
+        if (cursor.moveToFirst()) {
+            val localUpdatedAtMillis = cursor.getLong(cursor.getColumnIndexOrThrow(COLUMN_UPDATED_AT))
+
+            // Update only if the remote updatedAt is later
+            if (remoteUpdatedAtMillis > localUpdatedAtMillis) {
+
+                db.update(TABLE_NAME, values, selection, selectionArgs)
+            }
+        } else {
+            db.insert(TABLE_NAME, null, values)
+        }
+
+        cursor.close()
+    }
+
     fun changeToSynced(classes: List<Class>) {
         val db = this.writableDatabase
         db.beginTransaction() // Start a transaction for efficiency
@@ -186,8 +224,6 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
                     put("teacher", clazz.teacher)
                     put("comment", clazz.comment)
                     put("synced", 1)
-                    put("isDeleted", clazz.isDeleted)
-                    put("updatedAt", Timestamp(System.currentTimeMillis()).toString()) // Update the timestamp
                 }
                 db.update("classes", values, selection, selectionArgs)
             }
@@ -205,8 +241,6 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
             put("teacher", clazz.teacher)
             put("comment", clazz.comment)
             put("synced", 1)
-            put("isDeleted", clazz.isDeleted)
-            put("updatedAt", Timestamp(System.currentTimeMillis()).toString()) // Update the timestamp
         }
 
         // Define the WHERE clause and arguments

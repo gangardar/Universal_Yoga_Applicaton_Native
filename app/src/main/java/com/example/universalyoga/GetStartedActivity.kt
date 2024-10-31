@@ -61,6 +61,10 @@ class GetStartedActivity : AppCompatActivity() {
         }
     }
 
+    private fun handleSync() {
+
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (toggle.onOptionsItemSelected(item)) {
             return true

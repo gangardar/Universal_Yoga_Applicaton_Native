@@ -8,21 +8,13 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.log
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
 
-/**
- * A simple [Fragment] subclass.
- * Use the [BriefFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class BriefFragment(private val getCourseList: () -> List<Course>,
                     private val getClass: () -> List<Class>,
                     private val getCourseById: (String) -> Course?
@@ -31,6 +23,8 @@ class BriefFragment(private val getCourseList: () -> List<Course>,
     private lateinit var courseAdapter: CourseAdapter
     private lateinit var classRecyclerView: RecyclerView
     private lateinit var classAdapter: ClassAdapter
+
+    private lateinit var tvSyncStatus : TextView
 
     private lateinit var networkConnectionHelper: NetworkConnectionHelper
     private lateinit var courseDBHelper: CourseDBHelper
@@ -66,20 +60,54 @@ class BriefFragment(private val getCourseList: () -> List<Course>,
         //Handle data Sync
         networkConnectionHelper.observe(requireActivity()) { isConnected ->
             if (isConnected) {
-                showToast("Connected to Internet")
-                handleDataSync()
+                showToast("Syncing....")
+                handleDataSyncToFirestore()
+                handleDataSyncFromFirestore()
             } else {
                 showAlertDialog("Network Issue", "No internet connection! Sync will happen automatically once device is online")
 
             }
         }
+
+        tvSyncStatus = view.findViewById(R.id.tvSyncStatus)
     }
 
-    private fun handleDataSync() {
+    private fun handleSetSyncStatus(isTrue : Boolean) {
+
+        if(isTrue){
+            tvSyncStatus.setText("Synced")
+        }else{
+            tvSyncStatus.setText("Not Synced")
+        }
+    }
+
+    private fun handleDataSyncFromFirestore() {
+        firestoreHelper.fetchCoursesFromFirebase { courses ->
+            if (courses.isNotEmpty()) {
+                for (course in courses) {
+                    courseDBHelper.insertOrUpdateCourse(course)
+                }
+                courseAdapter.notifyDataSetChanged()
+            }
+        }
+        firestoreHelper.fetchClassesFromFirebase { classes ->
+            if (classes.isNotEmpty()) {
+                for (clazz in classes) {
+                    classDBHelper.insertOrUpdateClasses(clazz)
+                }
+                classAdapter.notifyDataSetChanged()
+            }
+        }
+        handleSetSyncStatus(true)
+
+    }
+
+    private fun handleDataSyncToFirestore() {
         val courses = courseDBHelper.getUnsyncedCourse()
         val classes = classDBHelper.getUnsyncedClass()
 
         if(courses.isEmpty() && classes.isEmpty()){
+            handleSetSyncStatus(true)
             showToast("Synced Already!")
             return
         }
@@ -94,6 +122,7 @@ class BriefFragment(private val getCourseList: () -> List<Course>,
             }
         }
         showToast("Synced Successfully!")
+        handleSetSyncStatus(true)
 
     }
 
