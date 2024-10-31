@@ -55,14 +55,19 @@ class GetStartedActivity : AppCompatActivity() {
 
                 }
 
+                R.id.nav_search -> {
+                    if(currentFragment !is AddCourseFragment){
+                        supportFragmentManager.beginTransaction()
+                            .replace(R.id.fragment_container, SearchFragment())
+                            .addToBackStack(null)
+                            .commit()
+                    }
+                }
+
             }
             binding.main.closeDrawer(binding.navView)
             true
         }
-    }
-
-    private fun handleSync() {
-
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

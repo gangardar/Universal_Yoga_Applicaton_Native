@@ -4,7 +4,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
-import com.example.universalyoga.CourseDBHelper.Companion
+import android.util.Log
 import java.sql.Timestamp
 import java.text.SimpleDateFormat
 import java.util.UUID
@@ -249,6 +249,73 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
         // Perform the update and return the number of rows affected
         return db.update("classes", values, selection, selectionArgs)
     }
+
+    fun searchClasses(date: String? = null, teacher: String? = null, day: Int? = null): List<Class> {
+        val db = this.readableDatabase
+        val classes = mutableListOf<Class>()
+
+        // Build the WHERE clause dynamically based on non-null search parameters
+        val selection = StringBuilder()
+        val selectionArgs = mutableListOf<String>()
+
+        if (!date.isNullOrEmpty()) {
+            selection.append("$COLUMN_DATE = ?")
+            selectionArgs.add(date)
+        }
+
+        if (!teacher.isNullOrEmpty()) {
+            if (selection.isNotEmpty()) selection.append(" AND ")
+            selection.append("$COLUMN_TEACHER LIKE ?")
+            selectionArgs.add("%$teacher%")
+        }
+
+        if (day != null) {
+            if (selection.isNotEmpty()) selection.append(" AND ")
+            selection.append("strftime('%w', $COLUMN_DATE) = ?") // %w returns day of week
+            selectionArgs.add(day.toString()) // Convert day to string
+        }
+
+        Log.d("TAG", "searchClasses: ${selection} ${selectionArgs}")
+
+        // Execute the query
+        val cursor = db.query(
+            TABLE_NAME,
+            null,  // Select all columns
+            selection.toString(),
+            selectionArgs.toTypedArray(),
+            null,
+            null,
+            null
+        )
+
+        // Process the cursor
+        if (cursor.moveToFirst()) {
+            do {
+                val clazz = Class(
+                    id = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_ID)),
+                    date = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_DATE))),
+                    courseId = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_COURSE_ID)),
+                    teacher = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TEACHER)),
+                    comment = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_COMMENT)),
+                    createdAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CREATED_AT))),
+                    updatedAt = convertStringToTimestamp(cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_UPDATED_AT))),
+                    synced = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_SYNCED)),
+                    isDeleted = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_ISDELETED)),
+                )
+                classes.add(clazz)
+            } while (cursor.moveToNext())
+        }
+
+        cursor.close()
+        return classes
+    }
+
+
+
+
+
+
+
 
 
     fun convertStringToTimestamp(createdAtString: String): Timestamp {

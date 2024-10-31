@@ -37,7 +37,12 @@ class AddCourseFragment : Fragment(R.layout.course_form){
         super.onViewCreated(view, savedInstanceState)
         courseDBHelper = CourseDBHelper(requireContext())
         // Set up the AutoCompleteTextView
-        val types = mutableListOf(R.array.types)
+        val typeList = arrayOf(
+            "Flow Yoga",
+            "Aerial Yoga",
+            "Family Yoga"
+        )
+        val types = mutableListOf(typeList)
         val spinnerAdapter = ArrayAdapter(requireContext(), com.google.android.material.R.layout.support_simple_spinner_dropdown_item, types)
         binding.autoCompleteTypeCourse.setAdapter(spinnerAdapter)
 
