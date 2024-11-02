@@ -42,9 +42,25 @@ class AddCourseFragment : Fragment(R.layout.course_form){
             "Aerial Yoga",
             "Family Yoga"
         )
-        val types = mutableListOf(typeList)
+        val types = typeList
         val spinnerAdapter = ArrayAdapter(requireContext(), com.google.android.material.R.layout.support_simple_spinner_dropdown_item, types)
         binding.autoCompleteTypeCourse.setAdapter(spinnerAdapter)
+
+        //Set up AutoComplete for Time
+        val timeList = arrayOf(
+            "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
+            "11:00", "11:30", "12:00", "12:30", "13:00", "13:30",
+            "14:00", "14:30", "15:00", "15:30", "16:00", "16:30",
+            "17:00", "17:30", "18:00", "18:30", "19:00", "19:30"
+        )
+
+        val timeAdapter = ArrayAdapter(
+            requireContext(),
+            com.google.android.material.R.layout.support_simple_spinner_dropdown_item,
+            timeList
+        )
+        binding.autoCompleteTimeCourse.setAdapter(timeAdapter)
+
 
         binding.fabAddImg.setOnClickListener {
             pickImageFromGallery()

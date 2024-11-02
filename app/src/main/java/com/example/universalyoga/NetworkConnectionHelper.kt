@@ -7,7 +7,7 @@ import android.net.NetworkCapabilities
 import android.net.NetworkRequest
 import androidx.lifecycle.LiveData
 
-class NetworkConnectionHelper(context: Context) : LiveData<Boolean>() {
+class NNetworkConnectionHelper(context: Context) : LiveData<Boolean>() {
 
     private val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager

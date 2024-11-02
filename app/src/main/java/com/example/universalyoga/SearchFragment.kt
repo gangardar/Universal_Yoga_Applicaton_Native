@@ -111,7 +111,7 @@ class SearchFragment : Fragment(),SearchClassAdapter.courseViewClickListener {
 
         // Update RecyclerView
         classRecyclerView = binding.recyclerViewResults
-        classRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.HORIZONTAL, false)
+        classRecyclerView.layoutManager = LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
         searchClassAdapter = SearchClassAdapter(classes, { id -> courseDBHelper.getCourseById(id) }, this)
         classRecyclerView.adapter = searchClassAdapter
 
@@ -166,7 +166,7 @@ class SearchFragment : Fragment(),SearchClassAdapter.courseViewClickListener {
         spinner.adapter = adapter
     }
 
-    private fun getDayOfWeekFromString(day: String): Int {
+    private fun getDayOfWeekFromString(day: String): Int? {
         return when (day) {
             "Sunday" -> 0
             "Monday" -> 1
@@ -175,7 +175,7 @@ class SearchFragment : Fragment(),SearchClassAdapter.courseViewClickListener {
             "Thursday" -> 4
             "Friday" -> 5
             "Saturday" -> 6
-            else -> -1 // Invalid day
+            else -> null // Invalid day
         }
     }
 

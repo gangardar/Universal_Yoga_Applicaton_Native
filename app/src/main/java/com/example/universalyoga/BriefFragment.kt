@@ -46,6 +46,20 @@ class BriefFragment(private val getCourseList: () -> List<Course>,
         classAdapter= ClassAdapter(getClass,getCourseById,this)
         classRecyclerView.adapter = classAdapter
 
+        if (courseAdapter.itemCount > 1) {
+            recyclerView.postDelayed({
+                val offsetPx = (recyclerView.width * 0.05).toInt()  // Scroll by 30% of RecyclerView width
+                recyclerView.scrollBy(offsetPx, 0)  // Scroll horizontally by the calculated offset
+            }, 1000)
+        }
+
+        if (classAdapter.itemCount > 1) {
+            classRecyclerView.postDelayed({
+                val offsetPx = (classRecyclerView.width * 0.05).toInt()  // Scroll by 30% of RecyclerView width
+                classRecyclerView.scrollBy(offsetPx, 0)  // Scroll horizontally by the calculated offset
+            }, 1000)
+        }
+
         return view
     }
 

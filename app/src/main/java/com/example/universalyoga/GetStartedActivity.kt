@@ -70,6 +70,16 @@ class GetStartedActivity : AppCompatActivity() {
         }
     }
 
+    private fun updateActionBarIcon(showArrow: Boolean) {
+        if (showArrow) {
+            supportActionBar?.setDisplayHomeAsUpEnabled(true)
+            toggle.syncState() // Ensure toggle reflects the change
+        } else {
+            supportActionBar?.setDisplayHomeAsUpEnabled(false)
+            toggle.syncState() // Ensure toggle reflects the change
+        }
+    }
+
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         if (toggle.onOptionsItemSelected(item)) {
             return true

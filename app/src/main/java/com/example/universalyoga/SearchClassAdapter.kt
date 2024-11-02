@@ -1,6 +1,7 @@
 package com.example.universalyoga
 
 import android.icu.text.SimpleDateFormat
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -42,6 +43,7 @@ class SearchClassAdapter(
     override fun onBindViewHolder(holder: ClassViewHolder, position: Int) {
         val classItem = classes[position]
         val courseItem: Course? = getCourseById(classItem.courseId)
+        Log.d("TAG", "onBindViewHolder: ${courseItem}")
 
         val dateFormat = java.text.SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         val date = dateFormat.format(classItem.date)

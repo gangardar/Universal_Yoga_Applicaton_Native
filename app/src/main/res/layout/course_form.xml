@@ -42,6 +42,7 @@
         android:layout_height="wrap_content"
         android:hint="Select or type new"
         android:inputType="text"
+        android:textSize="20sp"
         android:layout_marginBottom="16dp"/>
 
     <LinearLayout
@@ -53,9 +54,10 @@
         <LinearLayout
             android:layout_weight="1"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:background="@drawable/back_with_simple_stroke"
-            android:gravity="center">
+            android:gravity="center"
+            android:padding="8dp">
 
             <TextView
                 android:id="@+id/tvDay"
@@ -71,17 +73,37 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:entries="@array/days"/>
-
         </LinearLayout>
 
-        <EditText
-            android:id="@+id/etPrice"
+        <LinearLayout
             android:layout_weight="1"
             android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:hint="Enter Price"
-            android:layout_marginStart="16dp"/>
+            android:layout_height="match_parent"
+            android:background="@drawable/back_with_simple_stroke"
+            android:gravity="center"
+            android:layout_marginStart="16dp"
+            android:padding="8dp">
+
+            <TextView
+                android:id="@+id/tvMoneySign"
+                android:textSize="20sp"
+                android:textColor="@color/gray"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="€"
+                android:layout_marginEnd="8dp"/>
+
+            <EditText
+                android:id="@+id/etPrice"
+                android:layout_weight="1"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:hint="Enter Price"/>
+        </LinearLayout>
+
+
+
 
     </LinearLayout>
 

@@ -258,20 +258,21 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
         val selection = StringBuilder()
         val selectionArgs = mutableListOf<String>()
 
+        // Always include isDeleted check
+        selection.append("$COLUMN_ISDELETED = 0")
+
         if (!date.isNullOrEmpty()) {
-            selection.append("$COLUMN_DATE = ?")
-            selectionArgs.add(date)
+            selection.append(" AND DATE($COLUMN_DATE) = DATE(?)")
+            selectionArgs.add(date.split(" ")[0]) // Extract only the date part (YYYY-MM-DD)
         }
 
         if (!teacher.isNullOrEmpty()) {
-            if (selection.isNotEmpty()) selection.append(" AND ")
-            selection.append("$COLUMN_TEACHER LIKE ?")
+            selection.append(" AND $COLUMN_TEACHER LIKE ?")
             selectionArgs.add("%$teacher%")
         }
 
         if (day != null) {
-            if (selection.isNotEmpty()) selection.append(" AND ")
-            selection.append("strftime('%w', $COLUMN_DATE) = ?") // %w returns day of week
+            selection.append(" AND strftime('%w', $COLUMN_DATE) = ?") // %w returns day of week
             selectionArgs.add(day.toString()) // Convert day to string
         }
 
@@ -309,6 +310,7 @@ class ClassDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME,
         cursor.close()
         return classes
     }
+
 
 
 

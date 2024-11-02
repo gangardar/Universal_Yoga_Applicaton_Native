@@ -190,11 +190,6 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         return courses
     }
 
-    fun softDelete(id:String, imageURL: String): Int {
-        val db = this.writableDatabase
-        return db.delete(TABLE_NAME,"$COLUMN_ID=?", arrayOf(id.toString()))
-    }
-
     fun softDelete(course: Course): Boolean {
         val db = this.writableDatabase
 
@@ -202,7 +197,7 @@ class CourseDBHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_NAME
         val classCount = db.query(
             "Classes",
             arrayOf("id"),
-            "courseId = ?",
+            "courseId = ? AND isDeleted = 0",
             arrayOf(course.id),
             null,
             null,
